@@ -12,3 +12,9 @@ docs/
 
 # Dotenv file
 .env
+
+.Ds_Store
+zkout/
+
+broadcast/
+lib/

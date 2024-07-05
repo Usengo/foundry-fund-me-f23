@@ -3,9 +3,9 @@
 pragma solidity ^0.8.18;
 
 import {Test, console} from "forge-std/Test.sol";
-import {FundMe} from "../src/FundMe.sol";
-import  {DeployFundMe} from "../script/DeployFundMe.s.sol";
-import {MockV3Aggregator} from "./mocks/MockV3Aggregator.sol";
+import {FundMe} from "../../src/FundMe.sol";
+import  {DeployFundMe} from "../../script/DeployFundMe.s.sol";
+// import {MockV3Aggregator} from "./mocks/MockV3Aggregator.sol";
 
 /// @title FundMeTest
 /// @dev Contract for testing the FundMe contract
@@ -15,7 +15,7 @@ contract FundMeTest is Test {
     address USER = makeAddr("user");
     uint256 constant SEND_VALUE = 0.1 ether;
     uint256 constant STARTING_BALANCE = 10 ether;
-    
+    uint256 constant GAS_PRICE = 1;
     
     /// @dev Setup function to initialize the FundMe contract
     function setUp() external {
@@ -57,7 +57,7 @@ contract FundMeTest is Test {
         fundMe.fund{value: SEND_VALUE}();
         address funder = fundMe.getFunder(0);
         assertEq(funder, USER);
-    }
+    } 
 
     modifier funded() {
         vm.prank(USER);
@@ -114,6 +114,33 @@ contract FundMeTest is Test {
             startingFundMeBalance + startingOwnerBalance == 
             fundMe.getOwner().balance);
     }
+
+    function  testWithdrawFromMultipleFundersCheaper() public funded {
+        uint256 numberOfFunders = 10;
+        uint256 startingFunderIndex = 1;
+        for(uint256 i = startingFunderIndex; i < numberOfFunders; i++){
+            // vm.prank
+            // vm. deal
+            // fund the fundMe
+            hoax(address(1), SEND_VALUE);
+            fundMe.fund{value: SEND_VALUE}();
+        }
+
+         uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeBalance = address(fundMe).balance;
+
+        // act
+        vm.startPrank(fundMe.getOwner());
+        fundMe.cheaperWithdraw();
+        vm.stopPrank();
+
+        // Assert
+        assert(address(fundMe).balance == 0);
+        assert(
+            startingFundMeBalance + startingOwnerBalance == 
+            fundMe.getOwner().balance);
+    }
+
 
 }
 
